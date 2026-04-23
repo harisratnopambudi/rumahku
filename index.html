@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KPR — Rumahku</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0C0F0A;
+  --bg2:#141810;
+  --bg3:#1C221A;
+  --line:rgba(255,255,255,0.07);
+  --white:#F4F7F0;
+  --muted:rgba(244,247,240,0.4);
+  --dim:rgba(244,247,240,0.18);
+  --green:#A8E063;
+  --green2:#6BBF3A;
+  --green-dark:#2A4A1A;
+  --orange:#F5A623;
+  --red:#E05252;
+  --ff-display:'Bebas Neue',sans-serif;
+  --ff-body:'Outfit',sans-serif;
+  --ff-mono:'JetBrains Mono',monospace;
+}
+
+html,body{
+  width:100%;height:100%;
+  background:var(--bg);
+  color:var(--white);
+  font-family:var(--ff-body);
+  font-weight:400;
+  overflow:hidden;
+}
+
+@media(max-width:768px){
+  html,body{overflow:auto;height:auto;}
+}
+
+/* ── MAIN GRID ── */
+.layout{
+  width:100vw;height:100vh;
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  grid-template-rows:64px 1fr 1fr 46px;
+  gap:1px;
+  background:var(--line);
+}
+
+/* ── HEADER ── */
+.header{
+  grid-column:1/-1;
+  background:var(--bg2);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 2.5rem;
+}
+.logo{
+  font-family:var(--ff-display);
+  font-size:2.4rem;
+  letter-spacing:0.1em;
+  color:var(--green);
+}
+.header-meta{display:flex;align-items:center;gap:2.5rem;}
+.header-tag{
+  font-family:var(--ff-mono);
+  font-size:10px;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--muted);
+  line-height:1.7;
+}
+.badge{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--ff-mono);font-size:10px;
+  letter-spacing:0.1em;text-transform:uppercase;
+  padding:5px 14px;border-radius:100px;
+  border:1px solid var(--green);color:var(--green);
+}
+.badge.urgent{border-color:var(--red);color:var(--red);}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 1.8s ease-in-out infinite;}
+.badge.urgent .dot{background:var(--red);}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.25}}
+
+/* ── ALL CELLS ── */
+.cell{
+  background:var(--bg);
+  padding:1.75rem 2.2rem;
+  display:flex;flex-direction:column;
+  justify-content:space-between;
+  overflow:hidden;position:relative;
+}
+.cell::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.012) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,0.012) 1px,transparent 1px);
+  background-size:44px 44px;pointer-events:none;
+}
+.eyebrow{
+  font-family:var(--ff-mono);font-size:10px;
+  letter-spacing:0.15em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:0.5rem;
+}
+
+/* ── CELL A: SALDO (col1, row2+3) ── */
+.c-saldo{
+  grid-column:1;grid-row:2/4;
+  background:var(--bg2);
+  justify-content:flex-end;
+  padding:2.2rem 2.5rem;
+}
+.saldo-kecil{
+  font-family:var(--ff-mono);font-size:10px;
+  letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:1rem;
+}
+.saldo-rp{
+  font-family:var(--ff-display);font-size:1.6rem;
+  letter-spacing:0.14em;color:var(--muted);line-height:1;
+}
+.saldo-angka{
+  font-family:var(--ff-display);
+  font-size:clamp(4.5rem,8vw,9rem);
+  letter-spacing:0.01em;color:var(--white);
+  line-height:0.82;margin-bottom:0.8rem;
+}
+.saldo-caption{
+  font-size:15px;color:var(--muted);
+  font-weight:300;line-height:1.65;
+}
+.bar-wrap{margin-top:1.6rem;}
+.bar-track{height:3px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;margin-bottom:0.5rem;}
+.bar-fill{height:100%;background:var(--green);border-radius:2px;transform-origin:left;transform:scaleX(0);animation:grow 1.6s cubic-bezier(.77,0,.18,1) 0.4s forwards;}
+@keyframes grow{to{transform:scaleX(1)}}
+.bar-labels{display:flex;justify-content:space-between;font-family:var(--ff-mono);font-size:10px;color:var(--dim);letter-spacing:0.08em;}
+
+/* ── CELL B: PERSENTASE (col2, row2) ── */
+.c-pct{
+  grid-column:2;grid-row:2;
+  background:var(--green);
+}
+.c-pct .eyebrow{color:rgba(12,15,10,0.5);}
+.pct-num{
+  font-family:var(--ff-display);
+  font-size:clamp(7.5rem,13vw,14rem);
+  color:var(--bg);line-height:0.78;
+  letter-spacing:0.01em;
+}
+.pct-num sub{font-size:0.26em;letter-spacing:0;vertical-align:baseline;opacity:0.65;}
+.pct-caption{font-size:14px;color:rgba(12,15,10,0.55);font-weight:400;margin-top:0.7rem;}
+
+/* ── CELL C: CICILAN (col2, row3) ── */
+.c-cicilan{grid-column:2;grid-row:3;background:var(--bg3);}
+.cicilan-main{display:flex;align-items:baseline;gap:0.6rem;margin-bottom:0.6rem;}
+.cicilan-besar{
+  font-family:var(--ff-display);
+  font-size:clamp(6rem,10vw,10.5rem);
+  color:var(--white);line-height:0.82;
+}
+.cicilan-of{font-family:var(--ff-mono);font-size:13px;color:var(--muted);letter-spacing:0.08em;}
+.cicilan-hr{height:1px;background:var(--line);margin:0.5rem 0;}
+.cicilan-stats{display:flex;gap:1.5rem;flex-wrap:wrap;}
+.stat-block{font-family:var(--ff-mono);font-size:10px;color:var(--dim);letter-spacing:0.06em;line-height:1.8;}
+.stat-block strong{display:block;font-family:var(--ff-body);font-size:16px;font-weight:500;color:var(--white);letter-spacing:0;}
+
+/* ── CELL D: ANGSURAN (col3, row2) ── */
+.c-angsuran{grid-column:3;grid-row:2;background:var(--bg2);}
+.angsuran-total{
+  font-family:var(--ff-display);
+  font-size:clamp(3.5rem,6vw,6.5rem);
+  color:var(--orange);line-height:0.85;margin-bottom:0.3rem;
+}
+.angsuran-sub{font-size:14px;color:var(--muted);font-weight:300;margin-bottom:0.9rem;}
+.breakdown{display:flex;flex-direction:column;gap:0;}
+.br-row{display:flex;justify-content:space-between;align-items:center;padding:0.5rem 0;border-bottom:1px solid var(--line);}
+.br-row:last-child{border-bottom:none;}
+.br-k{font-size:15px;color:var(--muted);font-weight:300;}
+.br-v{font-family:var(--ff-mono);font-size:14px;color:var(--white);}
+.br-v.total-val{color:var(--orange);}
+
+/* ── CELL E: COUNTDOWN (col3, row3) ── */
+.c-countdown{
+  grid-column:3;grid-row:3;
+  background:var(--bg);
+  border:1px solid rgba(168,224,99,0.12);
+}
+.cd-num{
+  font-family:var(--ff-display);
+  font-size:clamp(6.5rem,12vw,12.5rem);
+  color:var(--green);line-height:0.78;
+  letter-spacing:0.02em;
+}
+.cd-unit{
+  font-family:var(--ff-mono);font-size:12px;
+  letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--muted);margin-top:0.35rem;margin-bottom:0.75rem;
+}
+.cd-date{font-size:14px;color:var(--muted);font-weight:300;}
+.cd-tagline{
+  font-family:var(--ff-display);
+  font-size:2rem;letter-spacing:0.1em;
+  color:var(--dim);line-height:1.15;
+  margin-top:auto;
+}
+
+/* ── FOOTER ── */
+.footer{
+  grid-column:1/-1;background:var(--bg2);
+  display:flex;align-items:center;
+  justify-content:space-between;
+  padding:0 2.5rem;
+  border-top:1px solid var(--line);
+}
+.footer-items{display:flex;gap:2.5rem;}
+.fi{
+  font-family:var(--ff-mono);font-size:10px;
+  letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--dim);
+}
+.fi span{color:var(--muted);}
+.ticker-wrap{overflow:hidden;white-space:nowrap;max-width:38%;}
+.ticker-inner{
+  display:inline-block;
+  font-family:var(--ff-mono);font-size:10px;
+  letter-spacing:0.1em;color:var(--green);
+  animation:tick 20s linear infinite;
+}
+@keyframes tick{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
+
+/* ── FADE IN ── */
+.layout>*{opacity:0;animation:fi 0.55s ease forwards;}
+.layout>*:nth-child(1){animation-delay:0.05s}
+.layout>*:nth-child(2){animation-delay:0.15s}
+.layout>*:nth-child(3){animation-delay:0.22s}
+.layout>*:nth-child(4){animation-delay:0.28s}
+.layout>*:nth-child(5){animation-delay:0.33s}
+.layout>*:nth-child(6){animation-delay:0.38s}
+.layout>*:nth-child(7){animation-delay:0.43s}
+@keyframes fi{to{opacity:1}}
+
+/* ── MOBILE ── */
+@media(max-width:768px){
+  .layout{
+    display:flex;flex-direction:column;
+    width:100%;height:auto;gap:1px;
+  }
+  .header{height:56px;padding:0 1.25rem;}
+  .header-tag{display:none;}
+  .cell,.c-saldo,.c-pct,.c-cicilan,.c-angsuran,.c-countdown{
+    padding:1.5rem 1.25rem;
+  }
+  .saldo-angka{font-size:2.5rem;}
+  .pct-num{font-size:4rem;}
+  .cd-num{font-size:3.5rem;}
+  .cicilan-besar{font-size:2.8rem;}
+  .ticker-wrap{max-width:50%;}
+  .footer-items{gap:1.2rem;}
+  .layout>*{opacity:1;animation:none;}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo">RUMAHKU</div>
+    <div class="header-meta">
+      <div class="header-tag">KPR SSA/SSB Tapak · 5% p.a.<br>Plafon Rp 122.200.000</div>
+      <div class="header-tag" id="hdr-date">—</div>
+      <div class="badge" id="main-badge">
+        <span class="dot"></span>
+        <span id="badge-txt">Aktif Berjalan</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CELL A: SALDO -->
+  <div class="cell c-saldo">
+    <div>
+      <div class="saldo-kecil">Saldo pinjaman tersisa</div>
+      <div class="saldo-rp">RP</div>
+      <div class="saldo-angka">52.217.297</div>
+      <div class="saldo-caption">
+        Dari plafon awal Rp 122.200.000<br>
+        Terlunasi Rp 69.982.703
+      </div>
+    </div>
+    <div class="bar-wrap">
+      <div class="bar-track"><div class="bar-fill" style="width:57.27%"></div></div>
+      <div class="bar-labels"><span>LUNAS 57,27%</span><span>SISA 42,73%</span></div>
+    </div>
+  </div>
+
+  <!-- CELL B: PERSENTASE -->
+  <div class="cell c-pct">
+    <div class="eyebrow">Persentase lunas</div>
+    <div>
+      <div class="pct-num">57<sub>,27%</sub></div>
+      <div class="pct-caption">Lebih dari separuh perjalanan sudah terlampaui</div>
+    </div>
+  </div>
+
+  <!-- CELL C: CICILAN -->
+  <div class="cell c-cicilan">
+    <div class="eyebrow">Cicilan berjalan</div>
+    <div>
+      <div class="cicilan-main">
+        <div class="cicilan-besar">84</div>
+        <div class="cicilan-of">/ 132 CICILAN</div>
+      </div>
+      <div class="cicilan-hr"></div>
+      <div class="cicilan-stats">
+        <div class="stat-block"><strong>48</strong>bulan sisa</div>
+        <div class="stat-block"><strong id="est-cell">—</strong>estimasi lunas</div>
+        <div class="stat-block"><strong>7 Tahun</strong>konsisten</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CELL D: ANGSURAN -->
+  <div class="cell c-angsuran">
+    <div class="eyebrow">Angsuran per bulan</div>
+    <div>
+      <div class="angsuran-total">Rp 1.226.000</div>
+      <div class="angsuran-sub">Jatuh tempo setiap tanggal 8</div>
+      <div class="breakdown">
+        <div class="br-row"><span class="br-k">Pokok</span><span class="br-v">Rp 960.444</span></div>
+        <div class="br-row"><span class="br-k">Bunga 5% p.a.</span><span class="br-v">Rp 265.556</span></div>
+        <div class="br-row"><span class="br-k">Total</span><span class="br-v total-val">Rp 1.226.000</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CELL E: COUNTDOWN -->
+  <div class="cell c-countdown">
+    <div class="eyebrow">Jatuh tempo berikutnya</div>
+    <div>
+      <div class="cd-num" id="cd-num">—</div>
+      <div class="cd-unit" id="cd-unit">hari lagi</div>
+      <div class="cd-date" id="cd-date">—</div>
+    </div>
+    <div class="cd-tagline">RUMAH<br>BEBAS<br>HUTANG</div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-items">
+      <div class="fi">Tenor <span>132 bln</span></div>
+      <div class="fi">Berjalan <span>84 bln</span></div>
+      <div class="fi">Sisa <span>48 bln</span></div>
+      <div class="fi">Lunas <span id="footer-lunas">—</span></div>
+    </div>
+    <div class="ticker-wrap">
+      <span class="ticker-inner">84 BULAN KONSISTEN · LEBIH DARI SEPARUH JALAN · SEMANGAT TERUS · TINGGAL 48 CICILAN LAGI · RUMAHKU HAMPIR BEBAS HUTANG ·&nbsp;&nbsp;&nbsp;&nbsp;</span>
+    </div>
+  </div>
+
+</div>
+<script>
+(function(){
+  const today=new Date();
+  let nextDue=new Date(today.getFullYear(),today.getMonth(),8);
+  if(today.getDate()>=8) nextDue=new Date(today.getFullYear(),today.getMonth()+1,8);
+  const diff=Math.ceil((nextDue-today)/86400000);
+
+  const cdNum=document.getElementById('cd-num');
+  const cdUnit=document.getElementById('cd-unit');
+  const badge=document.getElementById('main-badge');
+  const badgeTxt=document.getElementById('badge-txt');
+
+  if(diff===0){
+    cdNum.textContent='HARI INI';cdNum.style.fontSize='2.2rem';
+    cdUnit.textContent='BAYAR SEKARANG';
+    badge.classList.add('urgent');badgeTxt.textContent='Bayar Hari Ini';
+  } else if(diff<=3){
+    cdNum.textContent=diff;
+    cdUnit.textContent='hari lagi — segera siapkan';
+    cdNum.style.color='var(--orange)';
+    badge.classList.add('urgent');badgeTxt.textContent=diff+' Hari Lagi';
+  } else {
+    cdNum.textContent=diff;
+    cdUnit.textContent='hari menuju tanggal 8';
+  }
+
+  const opt={day:'numeric',month:'long',year:'numeric'};
+  const optS={month:'short',year:'numeric'};
+  document.getElementById('cd-date').textContent=nextDue.toLocaleDateString('id-ID',opt);
+  document.getElementById('hdr-date').textContent=today.toLocaleDateString('id-ID',opt);
+
+  const lunas=new Date(today.getFullYear(),today.getMonth()+48,1);
+  const lunasStr=lunas.toLocaleDateString('id-ID',{month:'long',year:'numeric'});
+  document.getElementById('est-cell').textContent=lunasStr;
+  document.getElementById('footer-lunas').textContent=lunas.toLocaleDateString('id-ID',optS);
+})();
+</script>
+</body>
+</html>
