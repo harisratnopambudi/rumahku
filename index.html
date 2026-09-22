@@ -285,15 +285,15 @@ html,body{
     <div>
       <div class="saldo-kecil">Saldo pinjaman tersisa</div>
       <div class="saldo-rp">RP</div>
-      <div class="saldo-angka">52.217.297</div>
+      <div class="saldo-angka" id="saldo-angka">—</div>
       <div class="saldo-caption">
         Dari plafon awal Rp 122.200.000<br>
-        Terlunasi Rp 69.982.703
+        Terlunasi Rp <span id="terlunasi-val">—</span>
       </div>
     </div>
     <div class="bar-wrap">
-      <div class="bar-track"><div class="bar-fill" style="width:57.27%"></div></div>
-      <div class="bar-labels"><span>LUNAS 57,27%</span><span>SISA 42,73%</span></div>
+      <div class="bar-track"><div class="bar-fill" id="bar-fill" style="width:0%"></div></div>
+      <div class="bar-labels"><span id="lunas-label">LUNAS —%</span><span id="sisa-label">SISA —%</span></div>
     </div>
   </div>
 
@@ -301,7 +301,7 @@ html,body{
   <div class="cell c-pct">
     <div class="eyebrow">Persentase lunas</div>
     <div>
-      <div class="pct-num">57<sub>,27%</sub></div>
+      <div class="pct-num" id="pct-num">—</div>
       <div class="pct-caption">Lebih dari separuh perjalanan sudah terlampaui</div>
     </div>
   </div>
@@ -311,14 +311,14 @@ html,body{
     <div class="eyebrow">Cicilan berjalan</div>
     <div>
       <div class="cicilan-main">
-        <div class="cicilan-besar">84</div>
+        <div class="cicilan-besar" id="cicilan-besar">—</div>
         <div class="cicilan-of">/ 132 CICILAN</div>
       </div>
       <div class="cicilan-hr"></div>
       <div class="cicilan-stats">
-        <div class="stat-block"><strong>48</strong>bulan sisa</div>
+        <div class="stat-block"><strong id="bulan-sisa">—</strong>bulan sisa</div>
         <div class="stat-block"><strong id="est-cell">—</strong>estimasi lunas</div>
-        <div class="stat-block"><strong>7 Tahun</strong>konsisten</div>
+        <div class="stat-block"><strong id="lama-konsisten">—</strong>konsisten</div>
       </div>
     </div>
   </div>
@@ -330,8 +330,8 @@ html,body{
       <div class="angsuran-total">Rp 1.226.000</div>
       <div class="angsuran-sub">Jatuh tempo setiap tanggal 8</div>
       <div class="breakdown">
-        <div class="br-row"><span class="br-k">Pokok</span><span class="br-v">Rp 960.444</span></div>
-        <div class="br-row"><span class="br-k">Bunga 5% p.a.</span><span class="br-v">Rp 265.556</span></div>
+        <div class="br-row"><span class="br-k">Pokok</span><span class="br-v" id="pokok-val">Rp —</span></div>
+        <div class="br-row"><span class="br-k">Bunga 5% p.a.</span><span class="br-v" id="bunga-val">Rp —</span></div>
         <div class="br-row"><span class="br-k">Total</span><span class="br-v total-val">Rp 1.226.000</span></div>
       </div>
     </div>
@@ -352,27 +352,90 @@ html,body{
   <div class="footer">
     <div class="footer-items">
       <div class="fi">Tenor <span>132 bln</span></div>
-      <div class="fi">Berjalan <span>84 bln</span></div>
-      <div class="fi">Sisa <span>48 bln</span></div>
+      <div class="fi">Berjalan <span id="footer-berjalan">—</span></div>
+      <div class="fi">Sisa <span id="footer-sisa">—</span></div>
       <div class="fi">Lunas <span id="footer-lunas">—</span></div>
     </div>
     <div class="ticker-wrap">
-      <span class="ticker-inner">84 BULAN KONSISTEN · LEBIH DARI SEPARUH JALAN · SEMANGAT TERUS · TINGGAL 48 CICILAN LAGI · RUMAHKU HAMPIR BEBAS HUTANG ·&nbsp;&nbsp;&nbsp;&nbsp;</span>
+      <span class="ticker-inner" id="ticker-inner">—</span>
     </div>
   </div>
 
 </div>
 <script>
 (function(){
-  const today=new Date();
-  let nextDue=new Date(today.getFullYear(),today.getMonth(),8);
-  if(today.getDate()>=8) nextDue=new Date(today.getFullYear(),today.getMonth()+1,8);
-  const diff=Math.ceil((nextDue-today)/86400000);
+  // ── KONSTANTA PINJAMAN ──
+  const PLAFON = 122200000;
+  const TENOR = 132;
+  const RATE_TAHUNAN = 0.05;
+  const R = RATE_TAHUNAN/12;          // suku bunga bulanan
+  const M = 1226000;                  // angsuran tetap per bulan
+  const AKAD_DATE = new Date(2019,2,11);        // 11 Maret 2019
+  // Titik kalibrasi nyata: cicilan ke-89 lunas per 8 Sept 2026,
+  // saldo tersisa saat itu Rp 47.184.754 (dicek langsung di app bank).
+  const ANCHOR_INSTALLMENT = 89;
+  const ANCHOR_DATE = new Date(2026,8,8);       // 8 Sept 2026
+  const ANCHOR_BALANCE = 47184754;
+
+  const rupiah = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
+  const angka = n => Math.round(n).toLocaleString('id-ID');
+  const fmt1 = n => n.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  const today = new Date();
+
+  // ── Tanggal jatuh tempo berikutnya (tanggal 8) ──
+  let nextDue = new Date(today.getFullYear(), today.getMonth(), 8);
+  if (today.getDate() >= 8) nextDue = new Date(today.getFullYear(), today.getMonth()+1, 8);
+
+  // ── Berapa cicilan yang sudah lunas sampai sekarang, dihitung dari anchor ──
+  const monthsDiff = (nextDue.getFullYear()-ANCHOR_DATE.getFullYear())*12 + (nextDue.getMonth()-ANCHOR_DATE.getMonth());
+  const currentInstallment = (ANCHOR_INSTALLMENT - 1) + monthsDiff;   // cicilan yang sudah terbayar
+  const paymentsSinceAnchor = monthsDiff - 1;                          // pembayaran tambahan setelah anchor
+
+  // ── Simulasi saldo declining balance sejak anchor ──
+  let bal = ANCHOR_BALANCE;
+  for (let i=0; i<paymentsSinceAnchor; i++){
+    const bunga = Math.round(bal*R);
+    const pokok = M - bunga;
+    bal = bal - pokok;
+  }
+  const saldoSekarang = Math.max(bal, 0);
+  const terlunasi = PLAFON - saldoSekarang;
+  const persenLunas = (terlunasi/PLAFON)*100;
+  const persenSisa = 100 - persenLunas;
+  const bulanSisa = Math.max(TENOR - currentInstallment, 0);
+
+  // ── Breakdown pokok/bunga untuk cicilan berikutnya (belum dibayar) ──
+  const bungaBerikutnya = Math.round(saldoSekarang*R);
+  const pokokBerikutnya = M - bungaBerikutnya;
+
+  // ── Lama konsisten sejak akad ──
+  let yTahun = today.getFullYear()-AKAD_DATE.getFullYear();
+  let yBulan = today.getMonth()-AKAD_DATE.getMonth();
+  if (today.getDate() < AKAD_DATE.getDate()) yBulan--;
+  if (yBulan < 0){ yBulan += 12; yTahun--; }
+  const lamaStr = yBulan>0 ? `${yTahun} Th ${yBulan} Bln` : `${yTahun} Tahun`;
+
+  // ── Isi elemen ──
+  document.getElementById('saldo-angka').textContent = angka(saldoSekarang);
+  document.getElementById('terlunasi-val').textContent = angka(terlunasi);
+  document.getElementById('bar-fill').style.width = persenLunas.toFixed(2)+'%';
+  document.getElementById('lunas-label').textContent = 'LUNAS '+fmt1(persenLunas)+'%';
+  document.getElementById('sisa-label').textContent = 'SISA '+fmt1(persenSisa)+'%';
+  document.getElementById('pct-num').innerHTML = Math.floor(persenLunas)+'<sub>,'+String(persenLunas.toFixed(2)).split('.')[1]+'%</sub>';
+  document.getElementById('cicilan-besar').textContent = currentInstallment;
+  document.getElementById('bulan-sisa').textContent = bulanSisa;
+  document.getElementById('lama-konsisten').textContent = lamaStr;
+  document.getElementById('pokok-val').textContent = rupiah(pokokBerikutnya);
+  document.getElementById('bunga-val').textContent = rupiah(bungaBerikutnya);
+  document.getElementById('footer-berjalan').textContent = currentInstallment+' bln';
+  document.getElementById('footer-sisa').textContent = bulanSisa+' bln';
 
   const cdNum=document.getElementById('cd-num');
   const cdUnit=document.getElementById('cd-unit');
   const badge=document.getElementById('main-badge');
   const badgeTxt=document.getElementById('badge-txt');
+  const diff=Math.ceil((nextDue-today)/86400000);
 
   if(diff===0){
     cdNum.textContent='HARI INI';cdNum.style.fontSize='2.2rem';
@@ -393,10 +456,12 @@ html,body{
   document.getElementById('cd-date').textContent=nextDue.toLocaleDateString('id-ID',opt);
   document.getElementById('hdr-date').textContent=today.toLocaleDateString('id-ID',opt);
 
-  const lunas=new Date(today.getFullYear(),today.getMonth()+48,1);
-  const lunasStr=lunas.toLocaleDateString('id-ID',{month:'long',year:'numeric'});
-  document.getElementById('est-cell').textContent=lunasStr;
-  document.getElementById('footer-lunas').textContent=lunas.toLocaleDateString('id-ID',optS);
+  const lunasDate=new Date(today.getFullYear(),today.getMonth()+bulanSisa,1);
+  document.getElementById('est-cell').textContent=lunasDate.toLocaleDateString('id-ID',{month:'long',year:'numeric'});
+  document.getElementById('footer-lunas').textContent=lunasDate.toLocaleDateString('id-ID',optS);
+
+  document.getElementById('ticker-inner').textContent =
+    `${currentInstallment} BULAN KONSISTEN · LEBIH DARI SEPARUH JALAN · SEMANGAT TERUS · TINGGAL ${bulanSisa} CICILAN LAGI · RUMAHKU HAMPIR BEBAS HUTANG ·    `;
 })();
 </script>
 </body>
